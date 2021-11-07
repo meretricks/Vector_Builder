@@ -1,18 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace Vector.Builder.Pages.Components
 {
     public interface COModel
     {
-        bool Over { get; set; }
-        Vector2D Position { get; set; }
-        System.Drawing.Size Size { get; set; }
-        void Draw(System.Drawing.Graphics g);
-        bool Contains(Vector2D position);
-        bool Contains(int x, int y);
+        public bool Over { get; set; }
+        public bool Selected { get; set; }
+        public Vector2D Position { get; set; }
+        public System.Drawing.Size Size { get; set; }
+        public abstract void Draw(Graphics g);
+        public bool Contains(Vector2D position);
+        public bool Contains(int x, int y);
+        public bool Contains(Point point);
     }
 }

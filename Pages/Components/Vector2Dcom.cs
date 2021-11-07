@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Vector.Builder.Pages.Components
+﻿namespace Vector.Builder.Pages.Components
 {
     internal class Vector2Dcom : COModel
     {
-        System.Drawing.Size COModel.Size { get; set; }
-
+        public System.Drawing.Size Size { get; set; } = System.Drawing.Size.Empty;
         public Vector2D Position { get; set; }
+        public bool Selected { get; set; } = false;
         public bool Over { get; set; }
         public System.Drawing.Rectangle Bounds = new System.Drawing.Rectangle();
 
@@ -21,9 +15,17 @@ namespace Vector.Builder.Pages.Components
             Bounds = new System.Drawing.Rectangle(Position.X - 8, Position.Y - 8, 16, 16);
         }
 
+        public void Draw(System.Drawing.Graphics g)
+        {
+            if (!Over & !Selected)
+                g.DrawImage(Properties.Resources.Vector2DMarker, Bounds);
+            else
+                g.DrawImage(Selected ? Properties.Resources.Vector2DMarker_Over_Selected : Properties.Resources.Vector2DMarker_Over, new System.Drawing.Rectangle(Position.X - 11, Position.Y - 11, 22, 22));
+        }
+
         public bool Contains(Vector2D position)
         {
-            return (position.X >= Position.X - 8) && (position.Y >= Position.Y - 8) && (position.X <= Position.X + 8) && (position.Y <= Position.Y + 8);
+            return Contains(position.X, position.Y);
         }
 
         public bool Contains(int x, int y)
@@ -31,12 +33,9 @@ namespace Vector.Builder.Pages.Components
             return (x >= Position.X - 8) && (y >= Position.Y - 8) && (x <= Position.X + 8) && (y <= Position.Y + 8);
         }
 
-        public void Draw(System.Drawing.Graphics g)
+        public bool Contains(System.Drawing.Point point)
         {
-            if (!Over)
-                g.DrawImage(Properties.Resources.Vector2DMarker, Bounds);
-            else
-                g.DrawImage(Properties.Resources.Vector2DMarker_Over, new System.Drawing.Rectangle(Position.X - 11, Position.Y - 11, 22, 22));
+            return Contains(point.X, point.Y);
         }
     }
 }

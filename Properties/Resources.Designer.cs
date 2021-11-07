@@ -129,5 +129,15 @@ namespace Vector.Builder.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Vector2DMarker_Over_Selected {
+            get {
+                object obj = ResourceManager.GetObject("Vector2DMarker_Over_Selected", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
     }
 }

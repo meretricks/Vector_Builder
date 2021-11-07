@@ -20,5 +20,15 @@ namespace Vector.Builder
             InitializeComponent();
 
         }
+
+        private void tool_Selector_Click(object sender, EventArgs e)
+        {
+            visualWorkspace1.SelectedTool = Pages.Components.VisualWorkspace.Tools.Selector;
+        }
+
+        private void tool_VectorPointer_Click(object sender, EventArgs e)
+        {
+            visualWorkspace1.SelectedTool = Pages.Components.VisualWorkspace.Tools.Vector_Pointer;
+        }
     }
 }

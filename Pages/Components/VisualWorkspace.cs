@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Vector.Builder.Tools;
 
 namespace Vector.Builder.Pages.Components
 {
@@ -23,9 +19,8 @@ namespace Vector.Builder.Pages.Components
             None
         }
 
-        public Tools SelectedTool = Tools.None;
+        public Tools SelectedTool { get; set; } = Tools.Vector_Pointer;
 
-        //Ruler/Grid Colors
         public Color RulerBackColor = Color.WhiteSmoke;
         public Color RulerLineColor = Color.LightGray;
         public Color CrossHairColor = Color.DarkGray;
@@ -38,9 +33,12 @@ namespace Vector.Builder.Pages.Components
         bool DrawRulerPointers = true;
         bool DrawGrid = true;
 
+        Point MouseDownPos = Point.Empty;
+        bool IsMouseDown = false;
+
         bool MouseOver = false;
 
-        List<COModel> models = new List<COModel>();
+        public List<COModel> Models { get; } = new List<COModel>();
 
         Point MouseLocation = Point.Empty;
         Rectangle ViewBounds;
@@ -56,6 +54,25 @@ namespace Vector.Builder.Pages.Components
             InitializeComponent();
             ViewBounds = new Rectangle(22, 22, Width, Height);
             SetStyle(ControlStyles.UserPaint | ControlStyles.ResizeRedraw | ControlStyles.OptimizedDoubleBuffer, true);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            if (ViewBounds.Contains(e.Location))
+            {
+                if (e.Button == MouseButtons.Left)
+                    IsMouseDown = true;
+                foreach (var m in Models)
+                    m.Selected = false;
+            }
+            MouseDownPos = e.Location;
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            base.OnMouseUp(e);
+            IsMouseDown = false;
         }
 
         protected override void OnResize(EventArgs e)
@@ -85,61 +102,59 @@ namespace Vector.Builder.Pages.Components
 
             try
             {
-                models.Where(c => c.Over).ToList().ForEach(e => e.Over = false);
-                models.Where(c => c.Contains(e.X, e.Y)).ToList().Last().Over = true;
+                Models.Where(c => c.Over).ToList().ForEach(e => e.Over = false);
+                Models.Where(c => c.Contains(e.X, e.Y)).ToList().Last().Over = true;
             }
             catch (Exception ex) { }
+
+            if (SelectedTool == Tools.Selector)
+                foreach (var c in Models)
+                {
+                    if (IsMouseDown && c.Position.X >= MouseDownPos.X && c.Position.Y >= MouseDownPos.Y && c.Position.X <= MouseLocation.X && c.Position.Y <= MouseLocation.Y)
+                        c.Selected = true;
+                    else if (IsMouseDown)
+                        c.Selected = false;
+                }
+
             Invalidate();
         }
 
         protected override void OnMouseClick(MouseEventArgs e)
         {
-
-            switch (SelectedTool)
-            {
-                case Tools.Vector_Pointer:
-                    break;
-
-                case Tools.Vector_Line:
-                    break;
-
-                case Tools.Vector_Square:
-                    break;
-                case Tools.Selector:
-                    break;
-                case Tools.Link:
-                    break;
-                default:
-                    break;
-            }
-
             switch (e.Button)
             {
                 case MouseButtons.Right:
-                    models.Remove(models.Where(c => c.Contains(e.X, e.Y)).Last());
-                    /*foreach (var m in models.Where(c => c.Contains(e.X, e.Y)).ToList())
-                        models.Remove(m);*/
+                    try {
+                        Models.Remove(Models.Where(c => c.Contains(e.X, e.Y)).Last()); } //removes only the top-most element. 
+                    catch (Exception ex) { }
                     break;
                 case MouseButtons.Left:
-                    if (!ViewBounds.Contains(e.Location))
-                        return;
-
-                    var o = new Vector2Dcom(MouseGridSnap.X, MouseGridSnap.Y); //e.x, e.y//
-                    models.Add(o);
+                    switch (SelectedTool)
+                    {
+                        case Tools.Vector_Pointer:
+                            ProcessVectorPointer(e);
+                            break;
+                        case Tools.Vector_Line:
+                            break;
+                        case Tools.Vector_Square:
+                            break;
+                        case Tools.Selector:
+                            break;
+                        case Tools.Link:
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 default:
                     return;
             }
         }
 
-        /*protected override void OnPaintBackground(PaintEventArgs e)
-        {
-            base.OnPaintBackground(e);
-        }*/
-
         protected override void OnPaint(PaintEventArgs e)
         {
             DrawRuler(e.Graphics);
+            e.Graphics.DrawImage(Properties.Resources.Tool_Square, 4, 4, 16, 16);
             //DrawVectorLines(e.Graphics);
 
             if (MouseOver && DrawCrossHairs && ViewBounds.Contains(MouseGridSnap.ToPoint()))
@@ -148,8 +163,12 @@ namespace Vector.Builder.Pages.Components
                 e.Graphics.DrawLine(CrossHairPen, new Point(0, MouseGridSnap.Y), new Point(Width, MouseGridSnap.Y));
             }
 
-            foreach (var model in models)
+            foreach (var model in Models)
                 model.Draw(e.Graphics);
+
+            if (SelectedTool == Tools.Selector && IsMouseDown)
+                e.Graphics.DrawRectangle(Pens.DimGray, MouseDownPos.X, MouseDownPos.Y, MouseLocation.X - MouseDownPos.X, MouseLocation.Y - MouseDownPos.Y);
+
         }
 
         void DrawRuler(Graphics g)
@@ -185,17 +204,34 @@ namespace Vector.Builder.Pages.Components
             }
         }
 
-        void DrawVectorLines(Graphics g)
+        bool ProcessVectorPointer(MouseEventArgs e)
         {
-            if (models.Count <= 1)
-                return;
+            if (!ViewBounds.Contains(e.Location))
+                return false;
 
-            for (int i = 0; i < models.Count -1; i++)
+            var o = new Vector2Dcom(MouseGridSnap.X, MouseGridSnap.Y);
+            var queue = Models.Where(c => c.Position.Compare(o.Position) || c.Over == true);
+            if (queue.Count() == 0)
             {
-                var o = models[i+1];
-                g.DrawLine(new Pen(Color.FromArgb(150, Color.Red)), models[i].Position.ToPoint(), o.Position.ToPoint());
+                Models.Add(o);
             }
+            else
+            {
+                queue.Last().Selected = true; // !queue.Last().Selected;
+                foreach (var m in Models.Where(c => c != queue.Last()))
+                    m.Selected = false;
+            }
+            return true;
         }
 
+        bool ProcessSelector(MouseEventArgs e)
+        {
+            if (!ViewBounds.Contains(e.Location))
+                return false;
+
+
+
+            return true;
+        }
     }
 }
