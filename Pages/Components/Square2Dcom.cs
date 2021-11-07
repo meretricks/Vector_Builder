@@ -16,12 +16,14 @@ namespace Vector.Builder.Pages.Components
         private SolidBrush backBrush;
         private Pen borderPen;
 
+        public bool Selected { get; set; }
         public bool Over { get; set; }
         public Vector2D Position { get; set; }
         public Size Size { get; set; }
 
         public Square2Dcom(Vector2D topleft)
         {
+            Selected = false;
             Position = topleft;
             BackColor = Color.FromArgb(100, Color.White);
             BorderColor = Color.DimGray;

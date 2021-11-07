@@ -9,6 +9,7 @@ namespace Vector.Builder.Pages.Components
     public interface COModel
     {
         bool Over { get; set; }
+        bool Selected { get; set; }
         Vector2D Position { get; set; }
         System.Drawing.Size Size { get; set; }
         void Draw(System.Drawing.Graphics g);

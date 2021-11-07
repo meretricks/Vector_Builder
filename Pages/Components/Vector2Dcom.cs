@@ -11,6 +11,7 @@ namespace Vector.Builder.Pages.Components
         System.Drawing.Size COModel.Size { get; set; }
 
         public Vector2D Position { get; set; }
+        public bool Selected { get; set; } = false;
         public bool Over { get; set; }
         public System.Drawing.Rectangle Bounds = new System.Drawing.Rectangle();
 
@@ -33,10 +34,10 @@ namespace Vector.Builder.Pages.Components
 
         public void Draw(System.Drawing.Graphics g)
         {
-            if (!Over)
+            if (!Over & !Selected)
                 g.DrawImage(Properties.Resources.Vector2DMarker, Bounds);
             else
-                g.DrawImage(Properties.Resources.Vector2DMarker_Over, new System.Drawing.Rectangle(Position.X - 11, Position.Y - 11, 22, 22));
+                g.DrawImage(Selected ? Properties.Resources.Vector2DMarker_Over_Selected : Properties.Resources.Vector2DMarker_Over, new System.Drawing.Rectangle(Position.X - 11, Position.Y - 11, 22, 22));
         }
     }
 }

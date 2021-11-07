@@ -40,7 +40,7 @@ namespace Vector.Builder.Pages.Components
 
         bool MouseOver = false;
 
-        List<COModel> models = new List<COModel>();
+        public List<COModel> Models { get; } = new List<COModel>();
 
         Point MouseLocation = Point.Empty;
         Rectangle ViewBounds;
@@ -85,8 +85,8 @@ namespace Vector.Builder.Pages.Components
 
             try
             {
-                models.Where(c => c.Over).ToList().ForEach(e => e.Over = false);
-                models.Where(c => c.Contains(e.X, e.Y)).ToList().Last().Over = true;
+                Models.Where(c => c.Over).ToList().ForEach(e => e.Over = false);
+                Models.Where(c => c.Contains(e.X, e.Y)).ToList().Last().Over = true;
             }
             catch (Exception ex) { }
             Invalidate();
@@ -116,16 +116,24 @@ namespace Vector.Builder.Pages.Components
             switch (e.Button)
             {
                 case MouseButtons.Right:
-                    models.Remove(models.Where(c => c.Contains(e.X, e.Y)).Last());
-                    /*foreach (var m in models.Where(c => c.Contains(e.X, e.Y)).ToList())
-                        models.Remove(m);*/
+                    try {
+                        Models.Remove(Models.Where(c => c.Contains(e.X, e.Y)).Last()); } //removes only the top-most element. 
+                    catch (Exception ex) { }
                     break;
                 case MouseButtons.Left:
                     if (!ViewBounds.Contains(e.Location))
                         return;
 
                     var o = new Vector2Dcom(MouseGridSnap.X, MouseGridSnap.Y); //e.x, e.y//
-                    models.Add(o);
+                    var queue = Models.Where(c => c.Position.Compare(o.Position));
+                    if (queue.Count() == 0)
+                    { Models.Add(o); }
+                    else
+                    { 
+                        queue.Last().Selected = ! queue.Last().Selected;
+                        foreach (var m in Models.Where(c => c != queue.Last()))
+                            m.Selected = false;
+                    }
                     break;
                 default:
                     return;
@@ -148,7 +156,7 @@ namespace Vector.Builder.Pages.Components
                 e.Graphics.DrawLine(CrossHairPen, new Point(0, MouseGridSnap.Y), new Point(Width, MouseGridSnap.Y));
             }
 
-            foreach (var model in models)
+            foreach (var model in Models)
                 model.Draw(e.Graphics);
         }
 
@@ -187,13 +195,13 @@ namespace Vector.Builder.Pages.Components
 
         void DrawVectorLines(Graphics g)
         {
-            if (models.Count <= 1)
+            if (Models.Count <= 1)
                 return;
 
-            for (int i = 0; i < models.Count -1; i++)
+            for (int i = 0; i < Models.Count -1; i++)
             {
-                var o = models[i+1];
-                g.DrawLine(new Pen(Color.FromArgb(150, Color.Red)), models[i].Position.ToPoint(), o.Position.ToPoint());
+                var o = Models[i+1];
+                g.DrawLine(new Pen(Color.FromArgb(150, Color.Red)), Models[i].Position.ToPoint(), o.Position.ToPoint());
             }
         }
 
