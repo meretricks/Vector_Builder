@@ -108,14 +108,16 @@ namespace Vector.Builder.Pages.Components
             catch (Exception ex) { }
 
             if (SelectedTool == Tools.Selector)
+            {
+                var r = new Rectangle(MouseDownPos.X, MouseDownPos.Y, MouseLocation.X - MouseDownPos.X, MouseLocation.Y - MouseDownPos.Y);
                 foreach (var c in Models)
                 {
-                    if (IsMouseDown && c.Position.X >= MouseDownPos.X && c.Position.Y >= MouseDownPos.Y && c.Position.X <= MouseLocation.X && c.Position.Y <= MouseLocation.Y)
+                    if (IsMouseDown && r.Correct().Contains(c.Position.ToPoint()))
                         c.Selected = true;
                     else if (IsMouseDown)
                         c.Selected = false;
                 }
-
+            }
             Invalidate();
         }
 
@@ -155,7 +157,6 @@ namespace Vector.Builder.Pages.Components
         {
             DrawRuler(e.Graphics);
             e.Graphics.DrawImage(Properties.Resources.Tool_Square, 4, 4, 16, 16);
-            //DrawVectorLines(e.Graphics);
 
             if (MouseOver && DrawCrossHairs && ViewBounds.Contains(MouseGridSnap.ToPoint()))
             {
@@ -167,7 +168,10 @@ namespace Vector.Builder.Pages.Components
                 model.Draw(e.Graphics);
 
             if (SelectedTool == Tools.Selector && IsMouseDown)
-                e.Graphics.DrawRectangle(Pens.DimGray, MouseDownPos.X, MouseDownPos.Y, MouseLocation.X - MouseDownPos.X, MouseLocation.Y - MouseDownPos.Y);
+            {
+                var r = new Rectangle(MouseDownPos.X, MouseDownPos.Y, MouseLocation.X - MouseDownPos.X, MouseLocation.Y - MouseDownPos.Y).Correct();
+                e.Graphics.DrawRectangle(Pens.DimGray, r);
+            }
 
         }
 
